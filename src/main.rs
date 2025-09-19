@@ -1,4 +1,5 @@
 use std::io;
+use rand::prelude::*;
 
 fn main() {
     let mut input : String;
@@ -26,6 +27,8 @@ fn main() {
             calculator();
         }  else if input_num == 2 {
             unit_converter();
+        } else if input_num == 3 {
+            guessing_game()
         }
     }
 }
@@ -146,5 +149,49 @@ fn unit_converter() {
         io::stdin()
             .read_line(&mut input)
             .expect("Why ;c");
+    }
+}
+
+fn guessing_game() {
+    let mut rng = rand::rng();
+    let mut input = String::new();
+    loop {
+        clear_screen();
+        input.clear();
+        println!("Guessing game, type q to exit, or something else to continue. ");
+        io::stdin()
+            .read_line(&mut input)
+            .expect("Why ;c");
+        if (input.trim() == "q") {
+            break;
+        }
+        let answer: u32 = rng.random_range(0..=100);
+        let mut guess : u32;
+        loop {
+            println!("Enter your guess: ");
+            input.clear();
+            io::stdin()
+                .read_line(&mut input)
+                .expect("Why ;c");
+            guess = match input.trim().parse() {
+                Ok(num) => num,
+                Err(_) => {
+                    invalid_input_msg();
+                    continue;
+                }
+            };
+            
+            if guess == answer {
+                println!("You guessed {}! That's correct!", guess);
+                io::stdin()
+                    .read_line(&mut input)
+                    .expect("Why ;c");
+                break;
+            } else if guess < answer {
+                println!("Bigger.");
+            } else if guess > answer {
+                println!("Smaller.");
+            }
+        }
     }
 }
