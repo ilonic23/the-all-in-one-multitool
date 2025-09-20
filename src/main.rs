@@ -1,8 +1,11 @@
+mod todolist;
 use std::io;
 use rand::prelude::*;
 
 fn main() {
     let mut input : String;
+
+
     loop {
         clear_screen();
         input = String::new();
@@ -29,6 +32,8 @@ fn main() {
             unit_converter();
         } else if input_num == 3 {
             guessing_game()
+        } else if input_num == 4 {
+            todolist();
         }
     }
 }
@@ -162,7 +167,7 @@ fn guessing_game() {
         io::stdin()
             .read_line(&mut input)
             .expect("Why ;c");
-        if (input.trim() == "q") {
+        if input.trim() == "q" {
             break;
         }
         let answer: u32 = rng.random_range(0..=100);
@@ -192,6 +197,76 @@ fn guessing_game() {
             } else if guess > answer {
                 println!("Smaller.");
             }
+        }
+    }
+}
+
+fn todolist() {
+    let mut list : todolist::List = todolist::List::new();
+    let mut input = String::new();
+    loop {
+        clear_screen();
+        input.clear();
+        println!("Todolist, choose an option:");
+        println!("0. List tasks");
+        println!("1. Add task");
+        println!("2. Remove task");
+        println!("3. Mark task");
+        println!("Type q to exit");
+        io::stdin()
+            .read_line(&mut input)
+            .expect("Why ;c");
+        if (input.trim() == "q") {
+            break;
+        }
+
+        let input_a: u8 = match input.trim().parse() {
+            Ok(num) => num,
+            Err(_) => {
+                invalid_input_msg();
+                continue;
+            }
+        };
+        
+        if input_a == 0 {
+            for item in &list.map {
+                println!("Task: {}Completed: {}", item.1.title, item.1.completed)
+            }
+            input.clear();
+            io::stdin()
+                .read_line(&mut input)
+                .expect("Why ;c");
+        }
+        
+        if input_a == 1 {
+            println!("Name the task:");
+            input.clear();
+            io::stdin()
+                .read_line(&mut input)
+                .expect("Why ;c");
+            let item : todolist::ListItem = todolist::ListItem {
+                title : input.clone(),
+                completed : false
+            };
+            list.add(item);
+        }
+        
+        if input_a == 2 {
+            println!("What task to remove?");
+            input.clear();
+            io::stdin()
+                .read_line(&mut input)
+                .expect("Why ;c");
+            list.remove(input.clone());
+        }
+        
+        if input_a == 3 {
+            println!("What to mark?");
+            input.clear();
+            io::stdin()
+                .read_line(&mut input)
+                .expect("Why ;c");
+            list.mark(&input);
         }
     }
 }
