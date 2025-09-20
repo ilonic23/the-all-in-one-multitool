@@ -5,7 +5,6 @@ use rand::prelude::*;
 fn main() {
     let mut input : String;
 
-
     loop {
         clear_screen();
         input = String::new();
@@ -128,7 +127,7 @@ fn unit_converter() {
             }
         };
 
-        println!("Enter conversion type:\n1.inch->cm\n2.cm->inch\n3.mile->km\n4.km->mile");
+        println!("Enter conversion type:\n1.inch->cm\n2.cm->inch\n3.mile->km\n4.km->mile\n5.m->ft\n6.ft->m");
         input.clear();
         io::stdin()
             .read_line(&mut input)
@@ -150,6 +149,10 @@ fn unit_converter() {
             println!("{}", input_a * 1.609)
         } else if input_b == 4 {
             println!("{}", input_a / 1.609)
+        } else if input_b == 5 {
+            println!("{}", input_a * 3.28)
+        } else if input_b == 6 {
+            println!("{}", input_a / 3.28)
         }
         io::stdin()
             .read_line(&mut input)
@@ -216,7 +219,7 @@ fn todolist() {
         io::stdin()
             .read_line(&mut input)
             .expect("Why ;c");
-        if (input.trim() == "q") {
+        if input.trim() == "q" {
             break;
         }
 
@@ -230,7 +233,7 @@ fn todolist() {
         
         if input_a == 0 {
             for item in &list.map {
-                println!("Task: {}Completed: {}", item.1.title, item.1.completed)
+                println!("Task: {}  Completed: {}", item.1.title, item.1.completed)
             }
             input.clear();
             io::stdin()
@@ -245,7 +248,7 @@ fn todolist() {
                 .read_line(&mut input)
                 .expect("Why ;c");
             let item : todolist::ListItem = todolist::ListItem {
-                title : input.clone(),
+                title : String::from(input.trim()),
                 completed : false
             };
             list.add(item);
@@ -257,7 +260,7 @@ fn todolist() {
             io::stdin()
                 .read_line(&mut input)
                 .expect("Why ;c");
-            list.remove(input.clone());
+            list.remove(String::from(input.trim()));
         }
         
         if input_a == 3 {
@@ -266,7 +269,7 @@ fn todolist() {
             io::stdin()
                 .read_line(&mut input)
                 .expect("Why ;c");
-            list.mark(&input);
+            list.mark(&String::from(input.trim()));
         }
     }
 }
