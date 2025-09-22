@@ -14,11 +14,11 @@ fn gen_range(from: u32, to: u32) -> Result<u32, io::Error> {
         return Err(io::Error::new(ErrorKind::InvalidInput, "from > to"));
     }
 
-    let span = to - from + 1;
+    let span : u32 = to - from + 1;
     let mut rng = OsRng;
 
     // Rejection sampling to avoid modulo bias
-    let zone = u32::MAX - (u32::MAX % span);
+    let zone : u32 = u32::MAX - (u32::MAX % span);
 
     loop {
         match rng.try_next_u32() {
@@ -30,7 +30,7 @@ fn gen_range(from: u32, to: u32) -> Result<u32, io::Error> {
 }
 
 fn main() {
-    let mut input : String;
+    let mut input : String = String::new();
     // let path = std::path::PathBuf::from("./hi.txt");
     // std::fs::write(path.clone(), String::from("hi!")).unwrap();
     // println!("{}", std::env::current_dir().unwrap().display());
@@ -39,17 +39,19 @@ fn main() {
 
     loop {
         clear_screen();
-        input = String::new();
+        input.clear();
         println!("The all in one multitool. What shall we use?");
+
         io::stdin()
             .read_line(&mut input)
             .expect("Failed to read line");
+        input = input.trim().to_string();
 
-        if input.trim() == "q" {
+        if input == "q" {
             break;
         }
 
-        let input_num: u32 = match input.trim().parse() {
+        let input_num: u32 = match input.parse() {
             Ok(num) => num,
             Err(_) => {
                 invalid_input_msg();
@@ -82,25 +84,29 @@ fn clear_screen() {
 
 fn invalid_input_msg() {
     println!("Invalid input, press enter to continue.");
-    let mut a = String::new();
+    let mut a: String = String::new();
     io::stdin()
         .read_line(&mut a)
         .expect("Why ;c");
 }
 
 fn calculator() {
+    let mut input : String = String::new();
     loop {
         clear_screen();
+        input.clear();
+
         println!("Calculator, enter a number, enter q to exit.");
-        let mut input = String::new();
         io::stdin()
             .read_line(&mut input)
             .expect("Why ;c");
-        if input.trim() == "q" {
+        input = input.trim().to_string();
+
+        if input == "q" {
             break;
         }
 
-        let input_a: f64 = match input.trim().parse() {
+        let input_a: f64 = match input.parse() {
             Ok(num) => num,
             Err(_) => {
                 invalid_input_msg();
@@ -113,8 +119,9 @@ fn calculator() {
         io::stdin()
             .read_line(&mut input)
             .expect("Why ;c");
+        input = input.trim().to_string();
 
-        let input_b: f64 = match input.trim().parse() {
+        let input_b: f64 = match input.parse() {
             Ok(num) => num,
             Err(_) => {
                 invalid_input_msg();
@@ -127,16 +134,17 @@ fn calculator() {
         io::stdin()
             .read_line(&mut input)
             .expect("Why ;c");
+        input = input.trim().to_string();
 
-        if input.trim() == "+" {
+        if input == "+" {
             println!("{}", input_a + input_b);
-        } else if input.trim() == "-" {
+        } else if input == "-" {
             println!("{}", input_a - input_b);
-        } else if input.trim() == "*" {
+        } else if input == "*" {
             println!("{}", input_a * input_b);
-        } else if input.trim() == "/" {
+        } else if input == "/" {
             println!("{}", input_a / input_b);
-        } else if input.trim() == "%" {
+        } else if input == "%" {
             println!("{}", input_a % input_b);
         }
         io::stdin()
@@ -146,18 +154,22 @@ fn calculator() {
 }
 
 fn unit_converter() {
+    let mut input : String = String::new();
     loop {
         clear_screen();
+        input.clear();
+
         println!("Unit converter, enter a number, enter q to exit.");
-        let mut input = String::new();
         io::stdin()
             .read_line(&mut input)
             .expect("Why ;c");
-        if input.trim() == "q" {
+        input = input.trim().to_string();
+
+        if input == "q" {
             break;
         }
 
-        let input_a: f64 = match input.trim().parse() {
+        let input_a: f64 = match input.parse() {
             Ok(num) => num,
             Err(_) => {
                 invalid_input_msg();
@@ -170,8 +182,9 @@ fn unit_converter() {
         io::stdin()
             .read_line(&mut input)
             .expect("Why ;c");
+        input = input.trim().to_string();
 
-        let input_b: u8 = match input.trim().parse() {
+        let input_b: u8 = match input.parse() {
             Ok(num) => num,
             Err(_) => {
                 invalid_input_msg();
@@ -204,22 +217,29 @@ fn guessing_game() {
     loop {
         clear_screen();
         input.clear();
+
         println!("Guessing game, type q to exit, or something else to continue. ");
         io::stdin()
             .read_line(&mut input)
             .expect("Why ;c");
-        if input.trim() == "q" {
+        input = input.trim().to_string();
+
+        if input == "q" {
             break;
         }
+
         let answer: u32 = rng.random_range(0..=100);
         let mut guess : u32;
+
         loop {
             println!("Enter your guess: ");
             input.clear();
             io::stdin()
                 .read_line(&mut input)
                 .expect("Why ;c");
-            guess = match input.trim().parse() {
+            input = input.trim().to_string();
+
+            guess = match input.parse() {
                 Ok(num) => num,
                 Err(_) => {
                     invalid_input_msg();
@@ -244,24 +264,28 @@ fn guessing_game() {
 
 fn todolist() {
     let mut list : todolist::List = todolist::List::new();
-    let mut input = String::new();
+    let mut input : String = String::new();
     loop {
         clear_screen();
         input.clear();
+        
         println!("Todolist, choose an option:");
         println!("0. List tasks");
         println!("1. Add task");
         println!("2. Remove task");
         println!("3. Mark task");
         println!("Type q to exit");
+        
         io::stdin()
             .read_line(&mut input)
             .expect("Why ;c");
-        if input.trim() == "q" {
+        input = input.trim().to_string();
+        
+        if input == "q" {
             break;
         }
 
-        let input_a: u8 = match input.trim().parse() {
+        let input_a: u8 = match input.parse() {
             Ok(num) => num,
             Err(_) => {
                 invalid_input_msg();
@@ -273,7 +297,6 @@ fn todolist() {
             for item in &list.map {
                 println!("Task: {}  Completed: {}", item.1.title, item.1.completed)
             }
-            input.clear();
             io::stdin()
                 .read_line(&mut input)
                 .expect("Why ;c");
@@ -285,8 +308,10 @@ fn todolist() {
             io::stdin()
                 .read_line(&mut input)
                 .expect("Why ;c");
+            input = input.trim().to_string();
+            
             let item : todolist::ListItem = todolist::ListItem {
-                title : String::from(input.trim()),
+                title : input.clone(),
                 completed : false
             };
             list.add(item);
@@ -298,7 +323,9 @@ fn todolist() {
             io::stdin()
                 .read_line(&mut input)
                 .expect("Why ;c");
-            list.remove(String::from(input.trim()));
+            input = input.trim().to_string();
+            
+            list.remove(input.clone());
         }
         
         if input_a == 3 {
@@ -307,13 +334,15 @@ fn todolist() {
             io::stdin()
                 .read_line(&mut input)
                 .expect("Why ;c");
-            list.mark(&String::from(input.trim()));
+            input = input.trim().to_string();
+            
+            list.mark(&input.clone());
         }
     }
 }
 
 fn password_gen() {
-    let mut input = String::new();
+    let mut input : String = String::new();
     let mut char_string : String = String::from("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890-=_+,./<>?'\";:[]{}\\`~!@#$%^&*()");
     let mut length : u32 = 0;
     let mut quantity : u32 = 0;
@@ -324,19 +353,23 @@ fn password_gen() {
         io::stdin()
             .read_line(&mut input)
             .expect("Why ;c");
+        input = input.trim().to_string();
 
-        if input.trim() == "q" {
+        if input == "q" {
             break;
         }
-        else if input.trim() != "" {
+        else if input != "" {
             char_string = String::from(input.trim());
         }
+
         println!("Now enter the length of the passwords.");
         input.clear();
         io::stdin()
             .read_line(&mut input)
             .expect("Why ;c");
-        length = match input.trim().parse() {
+        input = input.trim().to_string();
+
+        length = match input.parse() {
             Ok(num) => num,
             Err(_) => {
                 invalid_input_msg();
@@ -346,12 +379,15 @@ fn password_gen() {
                 continue;
             }
         };
+
         println!("Now enter the quantity of the passwords.");
         input.clear();
         io::stdin()
             .read_line(&mut input)
             .expect("Why ;c");
-        quantity = match input.trim().parse() {
+        input = input.trim().to_string();
+
+        quantity = match input.parse() {
             Ok(num) => num,
             Err(_) => {
                 invalid_input_msg();
@@ -384,17 +420,21 @@ fn password_gen() {
 }
 
 fn ropasc() {
-    let mut input = String::new();
+    let mut input : String = String::new();
     loop {
         clear_screen();
         input.clear();
+
         println!("Rock Paper Scissors, enter q to exit, select:\nr - rock\np - paper\ns - scissors");
         io::stdin()
             .read_line(&mut input)
             .expect("Why ;c");
-        if input.trim() == "q" {
+        input = input.trim().to_string();
+
+        if input == "q" {
             break;
         }
+
         let index : usize = match gen_range(0, (3 - 1) as u32) {
             Ok(num) => num as usize,
             Err(err) => {
@@ -402,12 +442,14 @@ fn ropasc() {
                 continue;
             }
         };
-        let selection = String::from("spr").chars().nth(index).unwrap().to_string();
-        if selection == input.trim() {
+
+        let selection : String = String::from("spr").chars().nth(index).unwrap().to_string();
+
+        if selection == input {
             println!("Tie!");
-        } else if  selection == "r" && input.trim() == "p"
-                   || selection == "s" && input.trim() == "r" 
-                   || selection == "p" && input.trim() == "s" {
+        } else if  selection == "r" && input == "p"
+                   || selection == "s" && input == "r"
+                   || selection == "p" && input == "s" {
             println!("You win!");
         } else {
             println!("You lose!");
@@ -423,13 +465,15 @@ fn clock() {
     loop {
         clear_screen();
         input.clear();
+
         println!("Clock utility. To get help type h, to exit type q.");
         io::stdin()
             .read_line(&mut input)
             .expect("Why ;c");
         input = input.trim().to_string();
-        let local_datetime : DateTime<Local> =  Local::now();
-        
+
+        let local_datetime : DateTime<Local> = Local::now();
+
         if input == "q" {
             break;
         } else if input == "h" {
@@ -446,7 +490,6 @@ fn clock() {
         } else if input == "s" {
             println!("{}", local_datetime.timestamp());
         }
-
         io::stdin()
             .read_line(&mut input)
             .expect("Why ;c");
