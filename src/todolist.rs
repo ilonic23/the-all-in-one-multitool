@@ -1,13 +1,13 @@
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 pub struct List {
-    pub map: HashMap<String, ListItem>
+    pub map: BTreeMap<String, ListItem>
 }
 
 impl List {
     pub fn new() -> List {
         List {
-            map: HashMap::new()
+            map: BTreeMap::new()
         }
     }
 
@@ -19,9 +19,9 @@ impl List {
         self.map.remove(&item);
     }
 
-    pub fn get(&self, item: &String) -> Option<&ListItem> {
-        self.map.get(item)
-    }
+    // pub fn get(&self, item: &String) -> Option<&ListItem> {
+    //     self.map.get(item)
+    // }
 
     pub fn mark(&mut self, key: &String) -> Option<&mut ListItem> {
         match self.map.get_mut(key) {

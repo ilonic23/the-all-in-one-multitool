@@ -1,9 +1,39 @@
 mod todolist;
 use std::io;
+use std::io::ErrorKind;
 use rand::prelude::*;
+use rand::rngs::OsRng;
+use rand::TryRngCore;
+
+// ---Utility Functions---
+
+fn gen_range(from: u32, to: u32) -> Result<u32, io::Error> {
+    if from > to {
+        return Err(io::Error::new(ErrorKind::InvalidInput, "from > to"));
+    }
+
+    let span = to - from + 1;
+    let mut rng = OsRng;
+
+    // Rejection sampling to avoid modulo bias
+    let zone = u32::MAX - (u32::MAX % span);
+
+    loop {
+        match rng.try_next_u32() {
+            Ok(num) if num < zone => return Ok(from + (num % span)),
+            Ok(_) => continue, // retry if num in the "skew zone"
+            Err(_) => return Err(io::Error::new(ErrorKind::Other, "RNG failed")),
+        }
+    }
+}
 
 fn main() {
     let mut input : String;
+    // let path = std::path::PathBuf::from("./hi.txt");
+    // std::fs::write(path.clone(), String::from("hi!")).unwrap();
+    // println!("{}", std::env::current_dir().unwrap().display());
+    // // std::fs::File::create(path.clone()).unwrap();
+    
 
     loop {
         clear_screen();
@@ -33,6 +63,10 @@ fn main() {
             guessing_game()
         } else if input_num == 4 {
             todolist();
+        } else if input_num == 5 {
+            password_gen();
+        } else if input_num == 6 {
+            ropasc();
         }
     }
 }
@@ -271,5 +305,111 @@ fn todolist() {
                 .expect("Why ;c");
             list.mark(&String::from(input.trim()));
         }
+    }
+}
+
+fn password_gen() {
+    let mut input = String::new();
+    let mut char_string : String = String::from("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890-=_+,./<>?'\";:[]{}\\`~!@#$%^&*()");
+    let mut length : u32 = 0;
+    let mut quantity : u32 = 0;
+    loop {
+        clear_screen();
+        input.clear();
+        println!("Password generator, enter q to exit. Type characters string or type nothing to use the default one.");
+        io::stdin()
+            .read_line(&mut input)
+            .expect("Why ;c");
+
+        if input.trim() == "q" {
+            break;
+        }
+        else if input.trim() != "" {
+            char_string = String::from(input.trim());
+        }
+        println!("Now enter the length of the passwords.");
+        input.clear();
+        io::stdin()
+            .read_line(&mut input)
+            .expect("Why ;c");
+        length = match input.trim().parse() {
+            Ok(num) => num,
+            Err(_) => {
+                invalid_input_msg();
+                io::stdin()
+                    .read_line(&mut input)
+                    .expect("Why ;c");
+                continue;
+            }
+        };
+        println!("Now enter the quantity of the passwords.");
+        input.clear();
+        io::stdin()
+            .read_line(&mut input)
+            .expect("Why ;c");
+        quantity = match input.trim().parse() {
+            Ok(num) => num,
+            Err(_) => {
+                invalid_input_msg();
+                io::stdin()
+                    .read_line(&mut input)
+                    .expect("Why ;c");
+                continue;
+            }
+        };
+
+        for i in 0..quantity {
+            print!("{}: ", i + 1);
+            let mut temp : String = String::new();
+            for _ in 0..length {
+                let index : usize = match gen_range(0, (char_string.len() - 1) as u32) {
+                    Ok(num) => num as usize,
+                    Err(err) => {
+                        println!("Error: {err}");
+                        continue;
+                    }
+                };
+                temp.push(char_string.chars().nth(index).unwrap());
+            }
+            println!("{}", temp);
+        }
+        io::stdin()
+            .read_line(&mut input)
+            .expect("Why ;c");
+    }
+}
+
+fn ropasc() {
+    let mut input = String::new();
+    loop {
+        clear_screen();
+        input.clear();
+        println!("Rock Paper Scissors, enter q to exit, select:\nr - rock\np - paper\ns - scissors");
+        io::stdin()
+            .read_line(&mut input)
+            .expect("Why ;c");
+        if input.trim() == "q" {
+            break;
+        }
+        let index : usize = match gen_range(0, (3 - 1) as u32) {
+            Ok(num) => num as usize,
+            Err(err) => {
+                println!("Error: {err}");
+                continue;
+            }
+        };
+        let selection = String::from("spr").chars().nth(index).unwrap().to_string();
+        if selection == input.trim() {
+            println!("Tie!");
+        } else if  selection == "r" && input.trim() == "p"
+                   || selection == "s" && input.trim() == "r" 
+                   || selection == "p" && input.trim() == "s" {
+            println!("You win!");
+        } else {
+            println!("You lose!");
+        }
+        io::stdin()
+            .read_line(&mut input)
+            .expect("Why ;c");
     }
 }

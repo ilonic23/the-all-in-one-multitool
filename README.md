@@ -10,6 +10,8 @@ Select a program:
 2. Unit converter
 3. Guessing game
 4. Todo list
+5. Password generator
+6. Rock Paper Scissors
 </details>
 
 Follow the instructions given by the program.
