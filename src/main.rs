@@ -1,6 +1,8 @@
 mod todolist;
 use std::io;
 use std::io::ErrorKind;
+use chrono::DateTime;
+use chrono::Local;
 use rand::prelude::*;
 use rand::rngs::OsRng;
 use rand::TryRngCore;
@@ -67,6 +69,8 @@ fn main() {
             password_gen();
         } else if input_num == 6 {
             ropasc();
+        } else if input_num == 7 {
+            clock();
         }
     }
 }
@@ -408,6 +412,41 @@ fn ropasc() {
         } else {
             println!("You lose!");
         }
+        io::stdin()
+            .read_line(&mut input)
+            .expect("Why ;c");
+    }
+}
+
+fn clock() {
+    let mut input : String = String::new();
+    loop {
+        clear_screen();
+        input.clear();
+        println!("Clock utility. To get help type h, to exit type q.");
+        io::stdin()
+            .read_line(&mut input)
+            .expect("Why ;c");
+        input = input.trim().to_string();
+        let local_datetime : DateTime<Local> =  Local::now();
+        
+        if input == "q" {
+            break;
+        } else if input == "h" {
+            println!("Help:");
+            println!("h - help");
+            println!("q - quit");
+            println!("t - time");
+            println!("d - date");
+            println!("s - timestamp");
+        } else if input == "t" {
+            println!("{}", local_datetime.format("%H:%M:%S"));
+        } else if input == "d" {
+            println!("{}", local_datetime.format("%Y-%m-%d"));
+        } else if input == "s" {
+            println!("{}", local_datetime.timestamp());
+        }
+
         io::stdin()
             .read_line(&mut input)
             .expect("Why ;c");
