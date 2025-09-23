@@ -1,6 +1,6 @@
 mod todolist;
+mod notes;
 
-use std::error::Error;
 use std::io;
 use std::io::ErrorKind;
 use std::path;
@@ -39,7 +39,7 @@ fn read_csv(filename: path::PathBuf) -> Result<u32, io::Error> {
         Ok(file) => file,
         Err(e) => return Err(e)
     };
-    let mut rdr : Reader<File> = csv::Reader::from_reader(file);
+    let mut rdr : Reader<File> = Reader::from_reader(file);
 
     for result in rdr.records() {
         let record = match result {
@@ -100,6 +100,8 @@ fn main() {
             clock();
         } else if input_num == 8 {
             csv_parser();
+        } else if input_num == 9 {
+            notes()
         }
     }
 }
@@ -551,4 +553,106 @@ fn csv_parser() {
             .read_line(&mut input)
             .expect("Why ;c");
     }
+}
+
+fn notes() {
+    let mut input : String = String::new();
+    let mut notes : notes::Notes = match notes::Notes::load() {
+        Ok(n) => n,
+        Err(_) => notes::Notes::new()
+    };
+    
+    loop {
+        clear_screen();
+        input.clear();
+        
+        println!("Notes, type q to exit.\n0. List notes\n1. Add note\n2. Remove note\n3. Edit note");
+        io::stdin()
+            .read_line(&mut input)
+            .expect("Why ;c");
+        input = input.trim().to_string();
+        
+        if input == "q" {
+            break;
+        }
+        
+        let mut input_a : u32 = match input.parse() {
+            Ok(num) => num,
+            Err(_) => { 
+                invalid_input_msg();
+                io::stdin()
+                    .read_line(&mut input)
+                    .expect("Why ;c");
+                continue; 
+            }
+        };
+        
+        if input_a == 0 {
+            for item in notes.dict.clone() {
+                println!("{} {}", item.0, item.1);
+            }
+            io::stdin()
+                .read_line(&mut input)
+                .expect("Why ;c");
+        } else if input_a == 1 {
+            input.clear();
+            println!("Enter note:");
+            io::stdin()
+                .read_line(&mut input)
+                .expect("Why ;c");
+            input = input.trim().to_string();
+            notes.add(input.clone());
+        } else if input_a == 2 {
+            input.clear();
+            println!("Enter note ID to remove:");
+            io::stdin()
+                .read_line(&mut input)
+                .expect("Why ;c");
+            input = input.trim().to_string();
+            
+            input_a = match input.parse() {
+                Ok(num) => num,
+                Err(_) => {
+                    invalid_input_msg();
+                    io::stdin()
+                        .read_line(&mut input)
+                        .expect("Why ;c");
+                    continue; 
+                }
+            };
+            
+            notes.remove(input_a);
+        } else if input_a == 3 {
+            input.clear();
+            println!("Enter note ID to edit:");
+            io::stdin()
+                .read_line(&mut input)
+                .expect("Why ;c");
+            input = input.trim().to_string();
+
+            input_a = match input.parse() {
+                Ok(num) => num,
+                Err(_) => {
+                    invalid_input_msg();
+                    io::stdin()
+                        .read_line(&mut input)
+                        .expect("Why ;c");
+                    continue;
+                }
+            };
+            
+            input.clear();
+            println!("Enter note:");
+            io::stdin()
+                .read_line(&mut input)
+                .expect("Why ;c");
+            input = input.trim().to_string();
+            
+            notes.edit(input_a, input.clone());
+        }
+    }
+    match notes.save() {
+        Ok(_) => {},
+        Err(e) => panic!("{e}"),
+    };
 }
