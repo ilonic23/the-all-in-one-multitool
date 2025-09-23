@@ -1,6 +1,11 @@
 mod todolist;
+
+use std::error::Error;
 use std::io;
 use std::io::ErrorKind;
+use std::path;
+use std::fs::File;
+use csv::Reader;
 use chrono::DateTime;
 use chrono::Local;
 use rand::prelude::*;
@@ -29,13 +34,33 @@ fn gen_range(from: u32, to: u32) -> Result<u32, io::Error> {
     }
 }
 
+fn read_csv(filename: path::PathBuf) -> Result<u32, io::Error> {
+    let file : File = match File::open(filename) {
+        Ok(file) => file,
+        Err(e) => return Err(e)
+    };
+    let mut rdr : Reader<File> = csv::Reader::from_reader(file);
+
+    for result in rdr.records() {
+        let record = match result {
+            Ok(record) => record,
+            Err(_) => return Err(io::Error::new(ErrorKind::Other, "Parsing failed")),
+        };
+        for i in 0..record.len() {
+            print!("{}", record.get(i).unwrap());
+        }
+        println!();
+    }
+    
+    Ok(0)
+}
+
 fn main() {
     let mut input : String = String::new();
     // let path = std::path::PathBuf::from("./hi.txt");
     // std::fs::write(path.clone(), String::from("hi!")).unwrap();
     // println!("{}", std::env::current_dir().unwrap().display());
     // // std::fs::File::create(path.clone()).unwrap();
-    
 
     loop {
         clear_screen();
@@ -73,10 +98,11 @@ fn main() {
             ropasc();
         } else if input_num == 7 {
             clock();
+        } else if input_num == 8 {
+            csv_parser();
         }
     }
 }
-
 
 fn clear_screen() {
     print!("\x1B[H\x1B[2J\x1B[3J");
@@ -268,19 +294,19 @@ fn todolist() {
     loop {
         clear_screen();
         input.clear();
-        
+
         println!("Todolist, choose an option:");
         println!("0. List tasks");
         println!("1. Add task");
         println!("2. Remove task");
         println!("3. Mark task");
         println!("Type q to exit");
-        
+
         io::stdin()
             .read_line(&mut input)
             .expect("Why ;c");
         input = input.trim().to_string();
-        
+
         if input == "q" {
             break;
         }
@@ -309,7 +335,7 @@ fn todolist() {
                 .read_line(&mut input)
                 .expect("Why ;c");
             input = input.trim().to_string();
-            
+
             let item : todolist::ListItem = todolist::ListItem {
                 title : input.clone(),
                 completed : false
@@ -324,7 +350,7 @@ fn todolist() {
                 .read_line(&mut input)
                 .expect("Why ;c");
             input = input.trim().to_string();
-            
+
             list.remove(input.clone());
         }
         
@@ -335,7 +361,7 @@ fn todolist() {
                 .read_line(&mut input)
                 .expect("Why ;c");
             input = input.trim().to_string();
-            
+
             list.mark(&input.clone());
         }
     }
@@ -490,6 +516,37 @@ fn clock() {
         } else if input == "s" {
             println!("{}", local_datetime.timestamp());
         }
+        io::stdin()
+            .read_line(&mut input)
+            .expect("Why ;c");
+    }
+}
+
+fn csv_parser() {
+    let mut input : String = String::new();
+    loop {
+        clear_screen();
+        input.clear();
+        
+        println!("CSV parser, type a relative/full path to a csv file to parse. Type q to exit");
+        io::stdin()
+            .read_line(&mut input)
+            .expect("Why ;c");
+        input = input.trim().to_string();
+        
+        if input == "q" {
+            break;
+        }
+        
+        let file_path : path::PathBuf = path::PathBuf::from(&input);
+        
+        match read_csv(file_path) {
+            Ok(_) => {}
+            Err(err) => {
+                println!("{err}");
+            }
+        }
+        
         io::stdin()
             .read_line(&mut input)
             .expect("Why ;c");

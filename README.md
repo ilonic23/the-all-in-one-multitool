@@ -13,6 +13,7 @@ Select a program:
 5. Password generator
 6. Rock Paper Scissors
 7. Clock utility
+8. CSV parser
 </details>
 
 Follow the instructions given by the program.
