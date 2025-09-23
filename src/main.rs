@@ -35,10 +35,7 @@ fn gen_range(from: u32, to: u32) -> Result<u32, io::Error> {
 }
 
 fn read_csv(filename: path::PathBuf) -> Result<u32, io::Error> {
-    let file : File = match File::open(filename) {
-        Ok(file) => file,
-        Err(e) => return Err(e)
-    };
+    let file : File = File::open(filename)?;
     let mut rdr : Reader<File> = Reader::from_reader(file);
 
     for result in rdr.records() {
@@ -55,7 +52,8 @@ fn read_csv(filename: path::PathBuf) -> Result<u32, io::Error> {
     Ok(0)
 }
 
-fn main() {
+#[tokio::main]
+async fn main() -> Result<(), std::io::Error> {
     let mut input : String = String::new();
     // let path = std::path::PathBuf::from("./hi.txt");
     // std::fs::write(path.clone(), String::from("hi!")).unwrap();
@@ -102,8 +100,14 @@ fn main() {
             csv_parser();
         } else if input_num == 9 {
             notes()
+        } else if input_num == 10 {
+            // get_request().await.unwrap();
+            // io::stdin().read_line(&mut input).unwrap();
+            currency_converter().await;
         }
     }
+    
+    Ok(())
 }
 
 fn clear_screen() {
@@ -651,8 +655,94 @@ fn notes() {
             notes.edit(input_a, input.clone());
         }
     }
-    match notes.save() {
-        Ok(_) => {},
-        Err(e) => panic!("{e}"),
-    };
+    notes.save().unwrap();
+}
+
+async fn currency_converter() {
+    let mut input : String = String::new();
+    let mut from : String = String::new();
+    let mut to : String = String::new();
+    let mut amount: f64;
+
+    loop {
+        clear_screen();
+        input.clear();
+        from.clear();
+        to.clear();
+
+        println!("Currency converter, type q to exit. Type currency name to convert from:");
+        io::stdin()
+            .read_line(&mut input)
+            .expect("Why ;c");
+        input = input.trim().to_string();
+
+        if input == "q" {
+            break;
+        }
+        from = input.clone();
+
+        input.clear();
+        println!("Enter the amount of currency to convert:");
+        io::stdin()
+            .read_line(&mut input)
+            .expect("Why ;c");
+        input = input.trim().to_string();
+
+        amount = match input.parse() {
+            Ok(num) => num,
+            Err(_) => {
+                invalid_input_msg();
+                io::stdin()
+                    .read_line(&mut input)
+                    .expect("Why ;c");
+                continue;
+            }
+        };
+
+        input.clear();
+        println!("Enter the currency to convert to:");
+        io::stdin()
+            .read_line(&mut input)
+            .expect("Why ;c");
+        input = input.trim().to_string();
+
+        to = input.clone();
+
+        let response : reqwest::Response = match reqwest::get(
+            format!("https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/{}.json", from)).await {
+            Ok(response) => response,
+            Err(err) => {
+                println!("{err}");
+                io::stdin()
+                    .read_line(&mut input)
+                    .expect("Why ;c");
+                continue;
+            }
+        };
+
+        if !response.status().is_success() {
+            println!("Got unsuccessful status: {}\nPress enter to continue.", response.status());
+            io::stdin()
+                .read_line(&mut input)
+                .expect("Why ;c");
+            continue;
+        }
+
+        let json = match response.text().await {
+            Ok(response) => response,
+            Err(err) => {
+                println!("{err}");
+                io::stdin()
+                    .read_line(&mut input)
+                    .expect("Why ;c");
+                continue;
+            }
+        };
+        let value : serde_json::Value = serde_json::from_str(&json).unwrap();
+        let result : f64 = value[from.clone().to_lowercase()][to.clone().to_lowercase()].as_f64().unwrap();
+        println!("{amount} {} in {} is {}", from.to_uppercase(), to.to_uppercase(), result * amount);
+        io::stdin()
+            .read_line(&mut input)
+            .expect("Why ;c");
+    }
 }

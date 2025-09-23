@@ -48,29 +48,16 @@ impl Notes {
     }
 
     pub fn save(&self) -> Result<u8, std::io::Error> {
-        let serialized : String = match serde_json::to_string(self) {
-            Ok(serialized) => serialized,
-            Err(e) => return Err(std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))
-        };
+        let serialized : String = serde_json::to_string(self)?;
+        std::fs::write(PathBuf::from("./notes.json"), serialized.as_bytes())?;
         
-        match std::fs::write(PathBuf::from("./notes.json"), serialized.as_bytes()) {
-            Ok(_) => {},
-            Err(e) => return Err(std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))
-        };
-
         Ok(0)
     }
 
     pub fn load() -> Result<Notes, std::io::Error> {
-        let contents : String = match std::fs::read_to_string(PathBuf::from("./notes.json")) {
-            Ok(string) => string,
-            Err(e) => return Err(std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))
-        };
-
-        let notes: Notes = match serde_json::from_str(&contents) {
-            Ok(n) => n,
-            Err(e) => return Err(std::io::Error::new(std::io::ErrorKind::Other, e.to_string())),
-        };
+        let contents : String = std::fs::read_to_string(PathBuf::from("./notes.json"))?;
+        let notes: Notes = serde_json::from_str(&contents)?;
+        
         Ok(notes)
     }
 }

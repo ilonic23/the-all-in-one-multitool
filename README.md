@@ -15,6 +15,7 @@ Select a program:
 7. Clock utility
 8. CSV parser
 9. Notes
+10. Currency converter
 </details>
 
 Follow the instructions given by the program.
