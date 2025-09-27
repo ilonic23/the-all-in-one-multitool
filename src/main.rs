@@ -1,5 +1,6 @@
 mod todolist;
 mod notes;
+mod minesweeper;
 
 use std::collections::{BTreeMap};
 use std::io;
@@ -217,26 +218,24 @@ fn unit_converter() {
             .expect("Why ;c");
         input = input.trim().to_string();
 
-        let input_b: u8 = match input.parse() {
-            Ok(num) => num,
-            Err(_) => {
-                invalid_input_msg();
-                continue;
-            }
-        };
-
-        if input_b == 1 {
+        if input == "1" {
             println!("{}", input_a * 2.54)
-        } else if input_b == 2 {
+        } else if input == "2" {
             println!("{}", input_a / 2.54)
-        } else if input_b == 3 {
+        } else if input == "3" {
             println!("{}", input_a * 1.609)
-        } else if input_b == 4 {
+        } else if input == "4" {
             println!("{}", input_a / 1.609)
-        } else if input_b == 5 {
+        } else if input == "5" {
             println!("{}", input_a * 3.28)
-        } else if input_b == 6 {
+        } else if input == "6" {
             println!("{}", input_a / 3.28)
+        } else {
+            invalid_input_msg();
+            io::stdin()
+                .read_line(&mut input)
+                .expect("Why ;c");
+            continue;
         }
         io::stdin()
             .read_line(&mut input)
@@ -317,25 +316,15 @@ fn todolist() {
         if input == "q" {
             break;
         }
-
-        let input_a: u8 = match input.parse() {
-            Ok(num) => num,
-            Err(_) => {
-                invalid_input_msg();
-                continue;
-            }
-        };
         
-        if input_a == 0 {
+        if input == "0" {
             for item in &list.map {
                 println!("Task: {}  Completed: {}", item.1.title, item.1.completed)
             }
             io::stdin()
                 .read_line(&mut input)
                 .expect("Why ;c");
-        }
-        
-        if input_a == 1 {
+        } else if input == "1" {
             println!("Name the task:");
             input.clear();
             io::stdin()
@@ -348,9 +337,7 @@ fn todolist() {
                 completed : false
             };
             list.add(item);
-        }
-        
-        if input_a == 2 {
+        } else if input == "2" {
             println!("What task to remove?");
             input.clear();
             io::stdin()
@@ -359,9 +346,7 @@ fn todolist() {
             input = input.trim().to_string();
 
             list.remove(input.clone());
-        }
-        
-        if input_a == 3 {
+        } else if input == "3" {
             println!("What to mark?");
             input.clear();
             io::stdin()
@@ -370,6 +355,12 @@ fn todolist() {
             input = input.trim().to_string();
 
             list.mark(&input.clone());
+        } else {
+            invalid_input_msg();
+            io::stdin()
+                .read_line(&mut input)
+                .expect("Why ;c");
+            continue;
         }
     }
 }
@@ -577,26 +568,17 @@ fn notes() {
         if input == "q" {
             break;
         }
+
+        let input_a : u32;
         
-        let mut input_a : u32 = match input.parse() {
-            Ok(num) => num,
-            Err(_) => { 
-                invalid_input_msg();
-                io::stdin()
-                    .read_line(&mut input)
-                    .expect("Why ;c");
-                continue; 
-            }
-        };
-        
-        if input_a == 0 {
+        if input == "0" {
             for item in notes.dict.clone() {
                 println!("{} {}", item.0, item.1);
             }
             io::stdin()
                 .read_line(&mut input)
                 .expect("Why ;c");
-        } else if input_a == 1 {
+        } else if input == "1" {
             input.clear();
             println!("Enter note:");
             io::stdin()
@@ -604,7 +586,7 @@ fn notes() {
                 .expect("Why ;c");
             input = input.trim().to_string();
             notes.add(input.clone());
-        } else if input_a == 2 {
+        } else if input == "2" {
             input.clear();
             println!("Enter note ID to remove:");
             io::stdin()
@@ -624,7 +606,7 @@ fn notes() {
             };
             
             notes.remove(input_a);
-        } else if input_a == 3 {
+        } else if input == "3" {
             input.clear();
             println!("Enter note ID to edit:");
             io::stdin()
@@ -651,6 +633,12 @@ fn notes() {
             input = input.trim().to_string();
             
             notes.edit(input_a, input.clone());
+        } else {
+            invalid_input_msg();
+            io::stdin()
+                .read_line(&mut input)
+                .expect("Why ;c");
+            continue;
         }
     }
     notes.save().unwrap();
@@ -908,7 +896,8 @@ fn text_analyzer() {
             break;
         }
         
-        let mut file : File = match File::open(input.clone()) {
+        let mut contents : String = String::new();
+        contents = match std::fs::read_to_string(path::PathBuf::from(input.clone())) {
             Ok(file) => file,
             Err(e) => {
                 if e.kind() == ErrorKind::NotFound {
@@ -924,18 +913,6 @@ fn text_analyzer() {
                         .expect("Why ;c");
                     continue;
                 }
-            }
-        };
-        
-        let mut contents : String = String::new();
-        
-        match file.read_to_string(&mut contents) {
-            Ok(_) => { },
-            Err(e) => {
-                println!("Unknown error: {e}");
-                io::stdin()
-                    .read_line(&mut input)
-                    .expect("Why ;c");
             }
         };
         
