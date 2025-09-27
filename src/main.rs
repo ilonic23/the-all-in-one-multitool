@@ -2,7 +2,7 @@ mod todolist;
 mod notes;
 
 use std::io;
-use std::io::ErrorKind;
+use std::io::{ErrorKind, Read};
 use std::path;
 use std::fs::File;
 use csv::Reader;
@@ -104,6 +104,8 @@ async fn main() -> Result<(), std::io::Error> {
             // get_request().await.unwrap();
             // io::stdin().read_line(&mut input).unwrap();
             currency_converter().await;
+        } else if input_num == 11 {
+            minesweeper();
         }
     }
     
@@ -744,5 +746,151 @@ async fn currency_converter() {
         io::stdin()
             .read_line(&mut input)
             .expect("Why ;c");
+    }
+}
+
+fn minesweeper() {
+    const WIDTH: usize = 10;
+    const HEIGHT: usize = 10;
+    const MINES: usize = 10;
+    let mut grid : [[(i32, bool, bool); WIDTH]; HEIGHT] = [[(0, false, false); WIDTH]; HEIGHT]; // mine type, discovered, flag
+    let mut input : String = String::new();
+
+
+    loop {
+        clear_screen();
+        input.clear();
+
+        println!("Minesweeper, type q to exit. Press enter to continue.");
+        io::stdin()
+            .read_line(&mut input)
+            .expect("Why ;c");
+        input = input.trim().to_string();
+
+        if input == "q" {
+            break;
+        }
+        
+        let mut flags : usize = MINES;
+
+        grid = [[(0, false, false); WIDTH]; HEIGHT];
+        for _ in 0..MINES {
+            let mut mine_x = gen_range(0, (WIDTH - 1) as u32).expect("rng failed") as usize;
+            let mut mine_y = gen_range(0, (HEIGHT -1) as u32).expect("rng failed") as usize;
+
+            while grid[mine_y][mine_x].0 == -1 {
+                mine_x = gen_range(0, (WIDTH - 1) as u32).expect("rng failed") as usize;
+                mine_y = gen_range(0, (HEIGHT -1) as u32).expect("rng failed") as usize;
+            }
+
+            for dx in -1i32..=1 {
+                for dy in -1i32..=1 {
+                    let nx = mine_x as i32 + dx;
+                    let ny = mine_y as i32 + dy;
+
+                    if nx < 0 || ny < 0 || nx >= WIDTH as i32 || ny >= HEIGHT as i32 {
+                        continue; // skip out-of-bounds
+                    }
+
+                    let (nx, ny) = (nx as usize, ny as usize);
+
+                    if dx == 0 && dy == 0 {
+                        grid[ny][nx].0 = -1; // mine
+                    } else if grid[ny][nx].0 != -1 {
+                        grid[ny][nx].0 += 1; // neighbor count
+                    }
+                }
+            }
+        }
+        
+        loop {
+            let mut pos_x : u32;
+            let mut pos_y : u32;
+            
+            print_grid(&grid);
+            
+            input.clear();
+            println!("Select x position:");
+            io::stdin()
+                .read_line(&mut input)
+                .expect("Why ;c");
+            input = input.trim().to_string();
+            pos_x = match input.parse() {
+                Ok(num) => num,
+                Err(_) => {
+                    invalid_input_msg();
+                    io::stdin()
+                        .read_line(&mut input)
+                        .expect("Why ;c");
+                    continue;
+                }
+            };
+
+            input.clear();
+            println!("Select y position:");
+            io::stdin()
+                .read_line(&mut input)
+                .expect("Why ;c");
+            input = input.trim().to_string();
+            pos_y = match input.parse() {
+                Ok(num) => num,
+                Err(_) => {
+                    invalid_input_msg();
+                    io::stdin()
+                        .read_line(&mut input)
+                        .expect("Why ;c");
+                    continue;
+                }
+            };
+            
+            input.clear();
+            println!("Select action:\n1.Unravel\n2.Flag");
+            io::stdin()
+                .read_line(&mut input)
+                .expect("Why ;c");
+            input = input.trim().to_string();
+            if input == "1" {
+                if !grid[pos_y as usize][pos_x as usize].2 {
+                    grid[pos_y as usize][pos_x as usize].1 = true;
+                    if grid[pos_y as usize][pos_x as usize].0 < 0 {
+                        println!("You lose ;c");
+                        print_grid(&grid);
+                        io::stdin()
+                            .read_line(&mut input)
+                            .expect("Why ;c");
+                        break;
+                    } 
+                }
+            } else if input == "2" {
+                grid[pos_y as usize][pos_x as usize].2 = !grid[pos_y as usize][pos_x as usize].2;
+
+                if grid[pos_y as usize][pos_x as usize].2 {
+                    flags -= 1;
+                } else {
+                    flags += 1;
+                }
+
+                print_grid(&grid);
+                io::stdin()
+                    .read_line(&mut input)
+                    .expect("Why ;c");
+            }
+            
+            fn print_grid(&grid : &[[(i32, bool, bool); WIDTH]; HEIGHT]) {
+                for y in 0..HEIGHT {
+                    for x in 0..WIDTH {
+                        if grid[y][x].1 == true {
+                            print!("[{}] ", &grid[y][x].0);
+                        } else if grid[y][x].2 == true {
+                            print!("[f] ");
+                        } else {
+                            print!("[ ] ");
+                        }
+                    }
+                    println!();
+                }
+                println!();
+            }
+        }
     }
 }
