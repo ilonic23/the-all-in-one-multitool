@@ -13,7 +13,7 @@ use chrono::Local;
 use rand::prelude::*;
 use rand::rngs::OsRng;
 use rand::TryRngCore;
-
+use crate::minesweeper::Minesweeper;
 // ---Utility Functions---
 
 fn gen_range(from: u32, to: u32) -> Result<u32, io::Error> {
@@ -737,7 +737,9 @@ fn minesweeper() {
     const WIDTH: usize = 10;
     const HEIGHT: usize = 10;
     const MINES: usize = 10;
-    let mut grid : [[(i32, bool, bool); WIDTH]; HEIGHT] = [[(0, false, false); WIDTH]; HEIGHT]; // mine type, discovered, flag
+    let mut game : Minesweeper = Minesweeper::new(HEIGHT, WIDTH, MINES);
+    
+    
     let mut input : String = String::new();
 
 
@@ -757,41 +759,13 @@ fn minesweeper() {
         
         let mut flags : usize = MINES;
 
-        grid = [[(0, false, false); WIDTH]; HEIGHT];
-        for _ in 0..MINES {
-            let mut mine_x = gen_range(0, (WIDTH - 1) as u32).expect("rng failed") as usize;
-            let mut mine_y = gen_range(0, (HEIGHT -1) as u32).expect("rng failed") as usize;
-
-            while grid[mine_y][mine_x].0 == -1 {
-                mine_x = gen_range(0, (WIDTH - 1) as u32).expect("rng failed") as usize;
-                mine_y = gen_range(0, (HEIGHT -1) as u32).expect("rng failed") as usize;
-            }
-
-            for dx in -1i32..=1 {
-                for dy in -1i32..=1 {
-                    let nx = mine_x as i32 + dx;
-                    let ny = mine_y as i32 + dy;
-
-                    if nx < 0 || ny < 0 || nx >= WIDTH as i32 || ny >= HEIGHT as i32 {
-                        continue; // skip out-of-bounds
-                    }
-
-                    let (nx, ny) = (nx as usize, ny as usize);
-
-                    if dx == 0 && dy == 0 {
-                        grid[ny][nx].0 = -1; // mine
-                    } else if grid[ny][nx].0 != -1 {
-                        grid[ny][nx].0 += 1; // neighbor count
-                    }
-                }
-            }
-        }
+        game.generate_grid();
         
         loop {
             let pos_x : u32;
             let pos_y : u32;
             
-            print_grid(&grid);
+            game.print_grid();
             
             input.clear();
             println!("Select x position:");
@@ -834,11 +808,11 @@ fn minesweeper() {
                 .expect("Why ;c");
             input = input.trim().to_string();
             if input == "1" {
-                if !grid[pos_y as usize][pos_x as usize].2 {
-                    grid[pos_y as usize][pos_x as usize].1 = true;
-                    if grid[pos_y as usize][pos_x as usize].0 < 0 {
+                if !game.grid[pos_y as usize][pos_x as usize].2 {
+                    game.grid[pos_y as usize][pos_x as usize].1 = true;
+                    if game.grid[pos_y as usize][pos_x as usize].0 < 0 {
                         println!("You lose ;c");
-                        print_grid(&grid);
+                        game.print_grid();
                         io::stdin()
                             .read_line(&mut input)
                             .expect("Why ;c");
@@ -846,34 +820,23 @@ fn minesweeper() {
                     } 
                 }
             } else if input == "2" {
-                grid[pos_y as usize][pos_x as usize].2 = !grid[pos_y as usize][pos_x as usize].2;
-
-                if grid[pos_y as usize][pos_x as usize].2 {
+                let cell = game.grid[pos_y as usize][pos_x as usize];
+                let new_flag = !cell.2;
+                game.grid[pos_y as usize][pos_x as usize] = (cell.0, cell.1, new_flag);
+                
+                if game.grid[pos_y as usize][pos_x as usize].2 {
                     flags -= 1;
                 } else {
                     flags += 1;
                 }
-
-                print_grid(&grid);
+            }
+            
+            if flags == 0 && game.check_win() {
+                println!("You win! :D");
                 io::stdin()
                     .read_line(&mut input)
                     .expect("Why ;c");
-            }
-            
-            fn print_grid(&grid : &[[(i32, bool, bool); WIDTH]; HEIGHT]) {
-                for y in 0..HEIGHT {
-                    for x in 0..WIDTH {
-                        if grid[y][x].1 == true {
-                            print!("[{}] ", &grid[y][x].0);
-                        } else if grid[y][x].2 == true {
-                            print!("[f] ");
-                        } else {
-                            print!("[ ] ");
-                        }
-                    }
-                    println!();
-                }
-                println!();
+                break;
             }
         }
     }
