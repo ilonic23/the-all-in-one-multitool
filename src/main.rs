@@ -1,6 +1,7 @@
 mod todolist;
 mod notes;
 
+use std::collections::{BTreeMap};
 use std::io;
 use std::io::{ErrorKind, Read};
 use std::path;
@@ -53,12 +54,8 @@ fn read_csv(filename: path::PathBuf) -> Result<u32, io::Error> {
 }
 
 #[tokio::main]
-async fn main() -> Result<(), std::io::Error> {
+async fn main() -> Result<(), io::Error> {
     let mut input : String = String::new();
-    // let path = std::path::PathBuf::from("./hi.txt");
-    // std::fs::write(path.clone(), String::from("hi!")).unwrap();
-    // println!("{}", std::env::current_dir().unwrap().display());
-    // // std::fs::File::create(path.clone()).unwrap();
 
     loop {
         clear_screen();
@@ -106,6 +103,8 @@ async fn main() -> Result<(), std::io::Error> {
             currency_converter().await;
         } else if input_num == 11 {
             minesweeper();
+        } else if input_num == 12 {
+            text_analyzer()
         }
     }
     
@@ -563,10 +562,7 @@ fn csv_parser() {
 
 fn notes() {
     let mut input : String = String::new();
-    let mut notes : notes::Notes = match notes::Notes::load() {
-        Ok(n) => n,
-        Err(_) => notes::Notes::new()
-    };
+    let mut notes : notes::Notes = notes::Notes::load().unwrap_or_else(|_| notes::Notes::new());
     
     loop {
         clear_screen();
@@ -804,8 +800,8 @@ fn minesweeper() {
         }
         
         loop {
-            let mut pos_x : u32;
-            let mut pos_y : u32;
+            let pos_x : u32;
+            let pos_y : u32;
             
             print_grid(&grid);
             
@@ -892,5 +888,102 @@ fn minesweeper() {
                 println!();
             }
         }
+    }
+}
+
+fn text_analyzer() {
+    let mut input : String = String::new();
+    
+    loop {
+        clear_screen();
+        input.clear();
+        
+        println!("Text analyzer. Type q to exit, type a path of a file to analyze.");
+        io::stdin()
+            .read_line(&mut input)
+            .expect("Why ;c");
+        input = input.trim().to_string();
+        
+        if input == "q" {
+            break;
+        }
+        
+        let mut file : File = match File::open(input.clone()) {
+            Ok(file) => file,
+            Err(e) => {
+                if e.kind() == ErrorKind::NotFound {
+                    println!("File not found. Try again.");
+                    io::stdin()
+                        .read_line(&mut input)
+                        .expect("Why ;c");
+                    continue;
+                } else {
+                    println!("Unknown error: {e}");
+                    io::stdin()
+                        .read_line(&mut input)
+                        .expect("Why ;c");
+                    continue;
+                }
+            }
+        };
+        
+        let mut contents : String = String::new();
+        
+        match file.read_to_string(&mut contents) {
+            Ok(_) => { },
+            Err(e) => {
+                println!("Unknown error: {e}");
+                io::stdin()
+                    .read_line(&mut input)
+                    .expect("Why ;c");
+            }
+        };
+        
+        let mut letters : BTreeMap<char, usize> = BTreeMap::new();
+        
+        for ch in contents.to_lowercase().chars() {
+            match letters.get(&ch) {
+                Some(res) => letters.insert(ch, res + 1),
+                None => letters.insert(ch, 0)
+            };
+        }
+        
+        let mut count : u8 = 0;
+        for pair in letters {
+            count += 1;
+            if pair.0 == '\n' {
+                continue;
+            }
+            print!("'{}': {:.3}% ", pair.0, pair.1 as f64 / (contents.len() / 100) as f64);
+            if count == 4 {
+                count = 0;
+                println!();
+            }
+        }
+        println!();
+        
+        let mut words : BTreeMap<String, usize> = BTreeMap::new();
+        for str in contents.replace(".", "").replace(",", "").to_lowercase().split_whitespace() {
+            match words.get(str) {
+                Some(res) => words.insert(String::from(str), res + 1),
+                None => words.insert(String::from(str), 0)
+            };
+        }
+        
+        count = 0;
+        for pair in words {
+            count += 1;
+            print!("{:<15} {:>6.3}%  ", pair.0, pair.1 as f64 / (contents.len() / 100) as f64);
+            if count == 4 {
+                count = 0;
+                println!();
+            }
+        }
+        println!();
+        
+        println!("Press enter to continue...");
+        io::stdin()
+            .read_line(&mut input)
+            .expect("Why ;c");
     }
 }

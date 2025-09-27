@@ -16,6 +16,8 @@ Select a program:
 8. CSV parser
 9. Notes
 10. Currency converter
+11. Minesweeper
+12. Text analyzer
 </details>
 
 Follow the instructions given by the program.
