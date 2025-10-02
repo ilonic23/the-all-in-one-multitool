@@ -1,10 +1,11 @@
 mod todolist;
 mod notes;
 mod minesweeper;
+mod password_manager;
 
 use std::collections::{BTreeMap};
 use std::io;
-use std::io::{ErrorKind, Read};
+use std::io::{ErrorKind};
 use std::path;
 use std::fs::File;
 use csv::Reader;
@@ -13,7 +14,8 @@ use chrono::Local;
 use rand::prelude::*;
 use rand::rngs::OsRng;
 use rand::TryRngCore;
-use crate::minesweeper::Minesweeper;
+use minesweeper::Minesweeper;
+
 // ---Utility Functions---
 
 fn gen_range(from: u32, to: u32) -> Result<u32, io::Error> {
@@ -738,8 +740,8 @@ fn minesweeper() {
     const HEIGHT: usize = 10;
     const MINES: usize = 10;
     let mut game : Minesweeper = Minesweeper::new(HEIGHT, WIDTH, MINES);
-    
-    
+
+
     let mut input : String = String::new();
 
 
@@ -823,14 +825,14 @@ fn minesweeper() {
                 let cell = game.grid[pos_y as usize][pos_x as usize];
                 let new_flag = !cell.2;
                 game.grid[pos_y as usize][pos_x as usize] = (cell.0, cell.1, new_flag);
-                
+
                 if game.grid[pos_y as usize][pos_x as usize].2 {
                     flags -= 1;
                 } else {
                     flags += 1;
                 }
             }
-            
+
             if flags == 0 && game.check_win() {
                 println!("You win! :D");
                 io::stdin()
@@ -844,21 +846,21 @@ fn minesweeper() {
 
 fn text_analyzer() {
     let mut input : String = String::new();
-    
+
     loop {
         clear_screen();
         input.clear();
-        
+
         println!("Text analyzer. Type q to exit, type a path of a file to analyze.");
         io::stdin()
             .read_line(&mut input)
             .expect("Why ;c");
         input = input.trim().to_string();
-        
+
         if input == "q" {
             break;
         }
-        
+
         let mut contents : String = String::new();
         contents = match std::fs::read_to_string(path::PathBuf::from(input.clone())) {
             Ok(file) => file,
@@ -878,16 +880,16 @@ fn text_analyzer() {
                 }
             }
         };
-        
+
         let mut letters : BTreeMap<char, usize> = BTreeMap::new();
-        
+
         for ch in contents.to_lowercase().chars() {
             match letters.get(&ch) {
                 Some(res) => letters.insert(ch, res + 1),
                 None => letters.insert(ch, 0)
             };
         }
-        
+
         let mut count : u8 = 0;
         for pair in letters {
             count += 1;
@@ -901,7 +903,7 @@ fn text_analyzer() {
             }
         }
         println!();
-        
+
         let mut words : BTreeMap<String, usize> = BTreeMap::new();
         for str in contents.replace(".", "").replace(",", "").to_lowercase().split_whitespace() {
             match words.get(str) {
@@ -909,7 +911,7 @@ fn text_analyzer() {
                 None => words.insert(String::from(str), 0)
             };
         }
-        
+
         count = 0;
         for pair in words {
             count += 1;
@@ -920,10 +922,14 @@ fn text_analyzer() {
             }
         }
         println!();
-        
+
         println!("Press enter to continue...");
         io::stdin()
             .read_line(&mut input)
             .expect("Why ;c");
     }
+}
+
+fn password_manager() {
+    
 }
